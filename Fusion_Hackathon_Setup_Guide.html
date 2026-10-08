@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fusion Hackathon - Complete Setup & Architecture Guide</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 16mm 18mm 16mm;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.55;
+      font-size: 13px;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      border-bottom: 2px solid #4f46e5;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .badge {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0 0 6px 0;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: #64748b;
+      font-size: 12px;
+      margin: 0;
+    }
+    h2 {
+      font-size: 15px;
+      color: #1e1b4b;
+      border-left: 4px solid #4f46e5;
+      padding-left: 8px;
+      margin: 18px 0 10px 0;
+    }
+    h3 {
+      font-size: 13px;
+      color: #334155;
+      margin: 12px 0 6px 0;
+    }
+    p, ul, ol {
+      margin: 0 0 8px 0;
+    }
+    ul, ol {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 4px;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-size: 11.5px;
+    }
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 11px;
+      line-height: 1.45;
+      overflow-x: auto;
+      margin: 8px 0 12px 0;
+    }
+    .callout {
+      background: #f0fdf4;
+      border-left: 4px solid #22c55e;
+      padding: 10px 12px;
+      border-radius: 0 6px 6px 0;
+      margin: 10px 0;
+      font-size: 12px;
+    }
+    .callout-info {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 14px 0;
+      font-size: 11.5px;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    th {
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 600;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+    .footer {
+      margin-top: 25px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 8px;
+      font-size: 10px;
+      color: #94a3b8;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="badge">Fusion Hackathon &bull; Developer Guide</div>
+    <h1>Complete Project Setup & Deployment Guide</h1>
+    <p class="subtitle">Instructions for setting up the Fusion Hackathon Full-Stack Workspace on a new laptop (Windows, macOS, Linux).</p>
+  </div>
+
+  <h2>1. System Prerequisites</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Tool</th>
+        <th>Minimum Version</th>
+        <th>Command Check</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Git</strong></td>
+        <td>v2.30+</td>
+        <td><code>git --version</code></td>
+        <td>Required for source control</td>
+      </tr>
+      <tr>
+        <td><strong>Node.js & npm</strong></td>
+        <td>v18+ (LTS recommended)</td>
+        <td><code>node -v && npm -v</code></td>
+        <td>Runs Vite + React frontend</td>
+      </tr>
+      <tr>
+        <td><strong>Python</strong></td>
+        <td>v3.12+</td>
+        <td><code>python3 --version</code></td>
+        <td>Runs FastAPI backend</td>
+      </tr>
+      <tr>
+        <td><strong>uv (Astral)</strong></td>
+        <td>Latest (Recommended)</td>
+        <td><code>uv --version</code></td>
+        <td>Blazing fast Python venv & package sync</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>2. Step 1: Clone the Repository</h2>
+  <pre><code># Open your terminal or PowerShell and clone the repo
+git clone https://github.com/UnsettledAverage73/fusion-hackathon.git
+cd fusion-hackathon</code></pre>
+
+  <h2>3. Step 2: Backend Setup (FastAPI & SQLite)</h2>
+  <p>The backend powers REST endpoints, JWT session security, Google Identity token verification, and real-time Slack alerting.</p>
+
+  <h3>A. Copy the Environment Template</h3>
+  <pre><code>cd backend
+# Linux / macOS:
+cp .env.example .env
+
+# Windows (Command Prompt):
+copy .env.example .env</code></pre>
+
+  <h3>B. Install Dependencies and Run</h3>
+  <p><strong>Option 1 (Recommended & Fastest with <code>uv</code>):</strong></p>
+  <pre><code>uv sync
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000</code></pre>
+
+  <p><strong>Option 2 (Standard Python <code>venv</code> + <code>pip</code>):</strong></p>
+  <pre><code># Linux / macOS:
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Windows (PowerShell):
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000</code></pre>
+
+  <div class="callout">
+    <strong>Backend Verification:</strong><br>
+    &bull; Health Check: <a href="http://localhost:8000/health">http://localhost:8000/health</a> &rarr; <code>{"status":"ok"}</code><br>
+    &bull; Swagger Docs: <a href="http://localhost:8000/docs">http://localhost:8000/docs</a>
+  </div>
+
+  <div class="page-break"></div>
+
+  <h2>4. Step 3: Frontend Setup (React 19 + Vite + Tailwind CSS)</h2>
+  <p>Open a <strong>second terminal window</strong> and follow these steps:</p>
+
+  <h3>A. Navigate & Configure Environment</h3>
+  <pre><code>cd fusion-hackathon/frontend
+
+# Linux / macOS:
+cp .env.example .env
+
+# Windows (Command Prompt):
+copy .env.example .env</code></pre>
+
+  <h3>B. Install Packages & Start Vite Dev Server</h3>
+  <pre><code># Install node modules
+npm install
+
+# Start development server
+npm run dev</code></pre>
+
+  <div class="callout callout-info">
+    <strong>Frontend Access:</strong><br>
+    Open your browser to <a href="http://localhost:5173">http://localhost:5173</a>. The navbar will display <code>Render: Online</code> or local connection indicator.
+  </div>
+
+  <h2>5. Free-for-Dev Architecture & Built-in Services</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Implementation Details</th>
+        <th>Free Tier Limits</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Google Identity Services (OAuth 2.0)</strong></td>
+        <td>GIS button, token verification with Google tokeninfo endpoint, and JWT issuance.</td>
+        <td>100% Free & Unlimited.</td>
+      </tr>
+      <tr>
+        <td><strong>1-Click Demo Login</strong></td>
+        <td>Direct instant evaluator/judge authentication button in Auth Modal without API keys.</td>
+        <td>Unlimited local / cloud sessions.</td>
+      </tr>
+      <tr>
+        <td><strong>Slack Block Kit Notifier</strong></td>
+        <td>Ported from <code>Cloud_Cost_Optimization</code>. Standard library HTTP POST to Webhook URL with rich cards.</td>
+        <td>100% Free incoming webhooks.</td>
+      </tr>
+      <tr>
+        <td><strong>Render Cloud Deployment</strong></td>
+        <td>Frontend static SPA + Backend Python web service automatically tracking Git repo.</td>
+        <td>Free static sites & 750 monthly server hours.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>6. Live Hackathon Demonstration Flow</h2>
+  <ol>
+    <li><strong>Sign In Demo:</strong> Click <strong>"Sign In"</strong> in the top navbar &rarr; select <strong>"1-Click Judge & Tester Sign In"</strong>. Notice your evaluator profile and role badge appear instantly.</li>
+    <li><strong>Slack Live Alert:</strong> Click <strong>"Dispatch Live Slack Alert"</strong> on the main dashboard banner. If a webhook URL is configured in <code>backend/.env</code>, a formatted Block Kit alert appears in your Slack channel in real time.</li>
+    <li><strong>Interactive Swagger:</strong> Visit <code>/docs</code> to show live OpenAPI documentation and demonstrate active REST routes (<code>/health</code>, <code>/api/v1/auth</code>, <code>/api/v1/notifications</code>, <code>/api/v1/items</code>).</li>
+  </ol>
+
+  <h2>7. Production Cloud URLs</h2>
+  <ul>
+    <li><strong>Frontend Production (Render):</strong> <a href="https://codeforge-0j8e.onrender.com">https://codeforge-0j8e.onrender.com</a></li>
+    <li><strong>Backend API Production (Render):</strong> <a href="https://codeforge-zdxk.onrender.com">https://codeforge-zdxk.onrender.com</a></li>
+    <li><strong>Backend Swagger Docs:</strong> <a href="https://codeforge-zdxk.onrender.com/docs">https://codeforge-zdxk.onrender.com/docs</a></li>
+  </ul>
+
+  <div class="footer">
+    Fusion Hackathon Workspace &bull; Generated on October 8, 2026 &bull; Ready for deployment & pitch
+  </div>
+
+</body>
+</html>
