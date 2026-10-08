@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
 from app.database import init_db
-from app.routers import health_router, items_router
+from app.routers import auth_router, health_router, items_router, notifications_router
 
 settings = get_settings()
 
@@ -49,6 +49,8 @@ else:
 
 # Include Routers
 app.include_router(health_router)
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(notifications_router, prefix="/api/v1/notifications", tags=["Notifications"])
 app.include_router(items_router, prefix="/api/v1/items", tags=["Items"])
 
 

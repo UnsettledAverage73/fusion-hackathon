@@ -129,3 +129,48 @@ def test_crud_items(client):
     # 6. Verify 404 after deletion
     res = client.get(f"/api/v1/items/{item_id}")
     assert res.status_code == 404
+
+
+def test_auth_google_config(client):
+    """Test GET /api/v1/auth/google/config endpoint."""
+    res = client.get("/api/v1/auth/google/config")
+    assert res.status_code == 200
+    data = res.json()
+    assert "client_id" in data
+    assert "redirect_uri" in data
+
+
+def test_auth_demo_login_and_me(client):
+    """Test 1-click demo login and protected /me profile endpoint."""
+    res = client.post("/api/v1/auth/demo")
+    assert res.status_code == 200
+    data = res.json()
+    assert "access_token" in data
+    assert data["user"]["email"] == "judge.demo@fusion-hackathon.dev"
+    token = data["access_token"]
+
+    # Verify protected /me endpoint with Bearer token
+    res = client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert res.status_code == 200
+    user = res.json()
+    assert user["email"] == "judge.demo@fusion-hackathon.dev"
+    assert user["role"] == "judge"
+
+
+def test_notifications_slack_dispatch(client):
+    """Test POST /api/v1/notifications/slack endpoint."""
+    payload = {
+        "title": "Unit Test Alert",
+        "message": "Testing Slack dispatch pipeline",
+        "severity": "INFO",
+        "details": {"Env": "pytest", "Status": "pass"},
+    }
+    res = client.post("/api/v1/notifications/slack", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert "delivered" in data
+    assert "message" in data
+

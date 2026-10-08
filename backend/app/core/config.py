@@ -19,8 +19,14 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
 
-    # Security
+    # Security & Auth
     SECRET_KEY: str = "hackathon-dev-secret-key-replace-in-production-min-32-chars"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+
+    # Google OAuth
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "https://codeforge-zdxk.onrender.com/api/v1/auth/google/callback"
 
     # Database
     DATABASE_URL: str = "sqlite:///./hackathon.db"

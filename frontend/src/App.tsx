@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import confetti from 'canvas-confetti'
 import { Sidebar } from './components/layout/Sidebar'
 import { Navbar } from './components/layout/Navbar'
@@ -6,29 +6,51 @@ import { DashboardView } from './components/views/DashboardView'
 import { PlaygroundView } from './components/views/PlaygroundView'
 import { RecordsView } from './components/views/RecordsView'
 import { SettingsView } from './components/views/SettingsView'
+import { AuthModal } from './components/auth/AuthModal'
 import { Modal } from './components/ui/Modal'
 import { Input } from './components/ui/Input'
 import { Button } from './components/ui/Button'
-import type { NavSection } from './types'
+import { getMe, getSavedUser, logoutUser } from './api/client'
+import type { NavSection, User } from './types'
 
 export function App() {
   const [activeSection, setActiveSection] = useState<NavSection>('dashboard')
   const [searchQuery, setSearchQuery] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
   const [newTitle, setNewTitle] = useState('')
   const [newCategory, setNewCategory] = useState('AI / ML')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Restore saved user session if token exists
+    const saved = getSavedUser()
+    if (saved) {
+      setUser(saved)
+      getMe()
+        .then((fresh) => setUser(fresh))
+        .catch(() => {
+          // Token expired or invalid
+        })
+    }
+  }, [])
 
   const showToast = (msg: string) => {
     setToastMessage(msg)
     setTimeout(() => setToastMessage(null), 3000)
   }
 
+  const handleLogout = () => {
+    logoutUser()
+    setUser(null)
+    showToast('Signed out successfully.')
+  }
+
   const handleCreateTask = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTitle.trim()) return
 
-    // Trigger celebration confetti
     try {
       confetti({
         particleCount: 50,
@@ -63,11 +85,18 @@ export function App() {
           onOpenNewAction={() => setIsCreateModalOpen(true)}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          user={user}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          onLogout={handleLogout}
         />
 
         <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
           {activeSection === 'dashboard' && (
-            <DashboardView onQuickAction={() => setIsCreateModalOpen(true)} />
+            <DashboardView
+              onQuickAction={() => setIsCreateModalOpen(true)}
+              user={user}
+              onOpenAuth={() => setIsAuthModalOpen(true)}
+            />
           )}
           {activeSection === 'playground' && <PlaygroundView />}
           {activeSection === 'records' && (
@@ -76,6 +105,16 @@ export function App() {
           {activeSection === 'settings' && <SettingsView />}
         </main>
       </div>
+
+      {/* Google OAuth & Demo Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={(loggedUser) => {
+          setUser(loggedUser)
+          showToast(`Welcome back, ${loggedUser.full_name || loggedUser.email}!`)
+        }}
+      />
 
       {/* Quick Creation Modal */}
       <Modal

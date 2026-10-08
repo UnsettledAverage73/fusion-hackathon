@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { ActivityRecord, StatItem } from '../types'
+import type { ActivityRecord, AuthResponse, GoogleConfig, SlackAlertPayload, StatItem, User } from '../types'
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'https://codeforge-zdxk.onrender.com'
@@ -10,6 +10,15 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 15000,
+})
+
+// Attach Bearer token from localStorage if available
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('fusion_auth_token')
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
 })
 
 export interface BackendItem {
@@ -43,6 +52,56 @@ export async function createItem(payload: {
 
 export async function deleteItem(itemId: number): Promise<{ message: string }> {
   const res = await api.delete<{ message: string }>(`/api/v1/items/${itemId}`)
+  return res.data
+}
+
+// Authentication API
+export async function getGoogleConfig(): Promise<GoogleConfig> {
+  const res = await api.get<GoogleConfig>('/api/v1/auth/google/config')
+  return res.data
+}
+
+export async function verifyGoogleToken(credential: string): Promise<AuthResponse> {
+  const res = await api.post<AuthResponse>('/api/v1/auth/google/verify', { credential })
+  if (res.data.access_token) {
+    localStorage.setItem('fusion_auth_token', res.data.access_token)
+    localStorage.setItem('fusion_user', JSON.stringify(res.data.user))
+  }
+  return res.data
+}
+
+export async function demoLogin(): Promise<AuthResponse> {
+  const res = await api.post<AuthResponse>('/api/v1/auth/demo')
+  if (res.data.access_token) {
+    localStorage.setItem('fusion_auth_token', res.data.access_token)
+    localStorage.setItem('fusion_user', JSON.stringify(res.data.user))
+  }
+  return res.data
+}
+
+export async function getMe(): Promise<User> {
+  const res = await api.get<User>('/api/v1/auth/me')
+  return res.data
+}
+
+export function logoutUser(): void {
+  localStorage.removeItem('fusion_auth_token')
+  localStorage.removeItem('fusion_user')
+}
+
+export function getSavedUser(): User | null {
+  const userStr = localStorage.getItem('fusion_user')
+  if (!userStr) return null
+  try {
+    return JSON.parse(userStr) as User
+  } catch {
+    return null
+  }
+}
+
+// Slack Notification API
+export async function sendSlackAlert(payload: SlackAlertPayload): Promise<{ delivered: boolean; message: string }> {
+  const res = await api.post<{ delivered: boolean; message: string }>('/api/v1/notifications/slack', payload)
   return res.data
 }
 
