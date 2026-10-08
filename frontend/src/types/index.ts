@@ -46,3 +46,13 @@ export interface SlackAlertPayload {
   severity?: 'INFO' | 'WARNING' | 'CRITICAL'
   details?: Record<string, string | number>
 }
+
+export interface OrchestrationResult {
+  prompt: string
+  route_selected: string
+  provider: string
+  probabilities: Record<string, number>
+  semif_model: string
+  response: string
+  latency_ms: number
+}

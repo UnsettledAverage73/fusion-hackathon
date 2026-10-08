@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { ActivityRecord, AuthResponse, GoogleConfig, SlackAlertPayload, StatItem, User } from '../types'
+import type { ActivityRecord, AuthResponse, GoogleConfig, OrchestrationResult, SlackAlertPayload, StatItem, User } from '../types'
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'https://codeforge-zdxk.onrender.com'
@@ -102,6 +102,12 @@ export function getSavedUser(): User | null {
 // Slack Notification API
 export async function sendSlackAlert(payload: SlackAlertPayload): Promise<{ delivered: boolean; message: string }> {
   const res = await api.post<{ delivered: boolean; message: string }>('/api/v1/notifications/slack', payload)
+  return res.data
+}
+
+// SemIf + Groq + Sarvam Model Orchestration API
+export async function runOrchestration(prompt: string, context?: string): Promise<OrchestrationResult> {
+  const res = await api.post<OrchestrationResult>('/api/v1/ai/run', { prompt, context })
   return res.data
 }
 

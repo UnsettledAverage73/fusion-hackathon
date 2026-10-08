@@ -28,6 +28,14 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "https://codeforge-zdxk.onrender.com/api/v1/auth/google/callback"
 
+    # Model Orchestration (Groq & Sarvam)
+    GROQ_API_KEY: str = ""
+    SARVAM_API_KEY: str = ""
+    SEMIF_MODEL: str = "Qwen/Qwen3.5-4B"
+
+    # Slack Webhook
+    SLACK_WEBHOOK_URL: str = ""
+
     # Database
     DATABASE_URL: str = "sqlite:///./hackathon.db"
 

@@ -174,3 +174,23 @@ def test_notifications_slack_dispatch(client):
     assert "delivered" in data
     assert "message" in data
 
+
+def test_ai_orchestration_semif_groq_sarvam(client):
+    """Test POST /api/v1/ai/run hybrid SemIf orchestration."""
+    # 1. Complex prompt triggering Groq route
+    res = client.post("/api/v1/ai/run", json={"prompt": "Explain and write python code to optimize database queries."})
+    assert res.status_code == 200
+    data = res.json()
+    assert data["route_selected"] == "DEEP_GROQ"
+    assert "probabilities" in data
+    assert "DEEP_GROQ" in data["probabilities"]
+    assert data["latency_ms"] >= 0
+
+    # 2. Indic prompt triggering Sarvam route
+    res_indic = client.post("/api/v1/ai/run", json={"prompt": "नमस्ते, मला मराठी भाषेत मदत हवी आहे."})
+    assert res_indic.status_code == 200
+    data_indic = res_indic.json()
+    assert data_indic["route_selected"] == "INDIC_SARVAM"
+    assert data_indic["probabilities"]["INDIC_SARVAM"] > 0.5
+
+
