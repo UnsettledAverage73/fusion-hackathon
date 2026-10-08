@@ -37,6 +37,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   useEffect(() => {
     if (!isOpen) return
 
+    const envClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    if (envClientId) {
+      setGoogleClientId(envClientId)
+    }
+
     getGoogleConfig()
       .then((cfg) => {
         if (cfg.client_id) {
