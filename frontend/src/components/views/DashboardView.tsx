@@ -30,7 +30,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onQuickAction }) =
             <span>Hackathon Scaffolding Ready</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            CodeForge Workspace Active
+            Fusion Hackathon Workspace Active
           </h2>
           <p className="mt-2 text-sm text-slate-300 leading-relaxed">
             Frontend foundation is armed and ready. Once tomorrow's problem statement drops,
@@ -154,7 +154,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onQuickAction }) =
               </span>
               <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1.5 font-medium">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                Render Cloud: Live (codeforge-zdxk)
+                Render Cloud: Live (Fusion Hackathon)
               </p>
             </div>
           </Card>

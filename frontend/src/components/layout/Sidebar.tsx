@@ -42,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div>
             <h1 className="font-bold text-slate-100 text-base tracking-tight leading-none">
-              CodeForge
+              Fusion Hackathon
             </h1>
             <p className="text-[11px] text-indigo-400 font-medium tracking-wide uppercase mt-1">
               Hackathon Edition

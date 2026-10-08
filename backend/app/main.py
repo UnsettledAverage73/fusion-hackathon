@@ -56,7 +56,7 @@ app.include_router(items_router, prefix="/api/v1/items", tags=["Items"])
 def root_endpoint():
     """Root endpoint for quick API discovery."""
     return {
-        "message": "Codeforge Hackathon API is running",
+        "message": "Fusion Hackathon API is running",
         "status": "ok",
         "docs": "/docs",
         "health": "/health",

@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables and .env file."""
 
     # Project Information
-    PROJECT_NAME: str = "Codeforge API"
+    PROJECT_NAME: str = "Fusion Hackathon API"
     VERSION: str = "1.0.0"
     DESCRIPTION: str = "Hackathon REST API built with FastAPI, SQLite, and Uvicorn"
 

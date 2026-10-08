@@ -118,12 +118,12 @@ Deploying this backend to [Render](https://render.com) takes less than 2 minutes
 ### Step 1: Create a New Web Service on Render
 1. Log in to [Render Dashboard](https://dashboard.render.com).
 2. Click **New +** > **Web Service**.
-3. Connect your Git repository (e.g. `codeforge`).
+3. Connect your Git repository (e.g. `fusion-hackathon`).
 
 ### Step 2: Configure Service Settings
 Fill in the following fields:
 
-- **Name**: `codeforge-backend` (or your choice)
+- **Name**: `fusion-hackathon-backend` (or your choice)
 - **Region**: Choose the region closest to you or your frontend
 - **Branch**: `main`
 - **Root Directory**: `backend`
