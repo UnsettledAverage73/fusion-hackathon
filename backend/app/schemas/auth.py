@@ -1,12 +1,30 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
+
+
+class RegisterRequest(BaseModel):
+    name: str = Field(..., min_length=1, max_length=255, description="Full name")
+    email: str = Field(..., description="Valid email address")
+    password: str = Field(..., min_length=6, description="Password (min 6 chars)")
+    role: Literal["student", "staff"] = Field(default="student", description="Account role")
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+
+class DemoLoginRequest(BaseModel):
+    role: Literal["student", "staff"] = Field(default="student", description="Role to assume")
 
 
 class UserResponse(BaseModel):
     id: str
+    name: str
     email: str
-    name: Optional[str] = None
+    role: str
     picture: Optional[str] = None
     created_at: datetime
 

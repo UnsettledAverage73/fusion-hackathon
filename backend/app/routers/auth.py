@@ -7,7 +7,12 @@ from google.oauth2 import id_token
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.security import create_access_token, get_current_user
+from app.core.security import (
+    create_access_token,
+    get_current_user,
+    hash_password,
+    verify_password,
+)
 from app.database import get_db
 from app.models.user import User
 from app.schemas.auth import (
@@ -15,6 +20,9 @@ from app.schemas.auth import (
     GoogleAuthUrlResponse,
     GoogleConfigResponse,
     GoogleTokenVerifyRequest,
+    LoginRequest,
+    DemoLoginRequest,
+    RegisterRequest,
     UserResponse,
 )
 
@@ -22,11 +30,116 @@ router = APIRouter()
 settings = get_settings()
 
 
+@router.post(
+    "/register",
+    response_model=AuthResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new student or staff account",
+)
+def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
+    email_clean = payload.email.lower().strip()
+    existing = db.query(User).filter(User.email == email_clean).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An account with this email address already exists.",
+        )
+
+    user = User(
+        name=payload.name.strip(),
+        email=email_clean,
+        password_hash=hash_password(payload.password),
+        role=payload.role,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    token = create_access_token(data={"sub": user.id, "email": user.email, "role": user.role})
+    return AuthResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserResponse.model_validate(user),
+    )
+
+
+@router.post(
+    "/login",
+    response_model=AuthResponse,
+    summary="Authenticate with email and password",
+)
+def login_user(payload: LoginRequest, db: Session = Depends(get_db)):
+    email_clean = payload.email.lower().strip()
+    user = db.query(User).filter(User.email == email_clean).first()
+
+    if not user or not user.password_hash or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = create_access_token(data={"sub": user.id, "email": user.email, "role": user.role})
+    return AuthResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserResponse.model_validate(user),
+    )
+
+
+@router.post(
+    "/demo-login",
+    response_model=AuthResponse,
+    summary="One-click demo authentication for student and counselor roles",
+)
+def demo_login(payload: DemoLoginRequest, db: Session = Depends(get_db)):
+    if payload.role == "staff":
+        user = db.query(User).filter(User.role == "staff").first()
+        if not user:
+            user = User(
+                id="usr-counselor",
+                email="counselor@campus.edu",
+                name="Dr. Aris Thorne (Counselor)",
+                role="staff",
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+    else:
+        user = db.query(User).filter(User.role == "student").first()
+        if not user:
+            user = User(
+                id="usr-atharva",
+                email="atharva@student.edu",
+                name="Atharva Bodade",
+                role="student",
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+    token = create_access_token(data={"sub": user.id, "email": user.email, "role": user.role})
+    return AuthResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserResponse.model_validate(user),
+    )
+
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    summary="Get current authenticated user profile",
+)
+def get_me(user: User = Depends(get_current_user)):
+    return UserResponse.model_validate(user)
+
+
+# Google OAuth integration endpoints
 @router.get(
     "/google/config",
     response_model=GoogleConfigResponse,
     summary="Get Google OAuth client configuration",
-    description="Returns the Google OAuth Client ID for frontend Google Identity Services initialization.",
 )
 def get_google_config() -> GoogleConfigResponse:
     return GoogleConfigResponse(
@@ -40,7 +153,6 @@ def get_google_config() -> GoogleConfigResponse:
     "/google/url",
     response_model=GoogleAuthUrlResponse,
     summary="Generate Google OAuth redirect URL",
-    description="Constructs the standard Google consent screen authorization URL.",
 )
 def get_google_auth_url() -> GoogleAuthUrlResponse:
     if not settings.GOOGLE_CLIENT_ID:
@@ -66,7 +178,6 @@ def get_google_auth_url() -> GoogleAuthUrlResponse:
     "/google/verify",
     response_model=AuthResponse,
     summary="Verify Google ID token from frontend sign-in",
-    description="Validates Google One-Tap or Google Identity Services credential token and returns an application JWT.",
 )
 def verify_google_token(
     payload: GoogleTokenVerifyRequest,
@@ -99,7 +210,7 @@ def verify_google_token(
 
     google_sub = id_info.get("sub")
     email = id_info.get("email")
-    name = id_info.get("name")
+    name = id_info.get("name") or "Google User"
     picture = id_info.get("picture")
 
     if not email:
@@ -108,13 +219,13 @@ def verify_google_token(
             detail="Google account did not return an email address.",
         )
 
-    # Upsert user record
     user = db.query(User).filter((User.google_id == google_sub) | (User.email == email)).first()
     if not user:
         user = User(
             google_id=google_sub,
             email=email,
             name=name,
+            role="student",
             picture=picture,
         )
         db.add(user)
@@ -126,8 +237,7 @@ def verify_google_token(
     db.commit()
     db.refresh(user)
 
-    access_token = create_access_token(data={"sub": user.id, "email": user.email})
-
+    access_token = create_access_token(data={"sub": user.id, "email": user.email, "role": user.role})
     return AuthResponse(
         access_token=access_token,
         token_type="bearer",
@@ -138,7 +248,6 @@ def verify_google_token(
 @router.get(
     "/google/callback",
     summary="Google OAuth2 redirect callback handler",
-    description="Exchanges code from Google authorization screen and redirects to frontend with auth token.",
 )
 def google_callback(
     code: str = Query(..., description="Authorization code from Google"),
@@ -186,7 +295,7 @@ def google_callback(
 
     google_sub = id_info.get("sub")
     email = id_info.get("email")
-    name = id_info.get("name")
+    name = id_info.get("name") or "Google User"
     picture = id_info.get("picture")
 
     user = db.query(User).filter((User.google_id == google_sub) | (User.email == email)).first()
@@ -195,6 +304,7 @@ def google_callback(
             google_id=google_sub,
             email=email,
             name=name,
+            role="student",
             picture=picture,
         )
         db.add(user)
@@ -206,16 +316,6 @@ def google_callback(
     db.commit()
     db.refresh(user)
 
-    jwt_token = create_access_token(data={"sub": user.id, "email": user.email})
+    jwt_token = create_access_token(data={"sub": user.id, "email": user.email, "role": user.role})
     target_redirect = f"{settings.FRONTEND_URL}/?auth_token={jwt_token}"
     return RedirectResponse(url=target_redirect)
-
-
-@router.get(
-    "/me",
-    response_model=UserResponse,
-    summary="Get authenticated user profile",
-    description="Returns current authenticated user details extracted from the bearer token.",
-)
-def get_current_user_profile(user: User = Depends(get_current_user)) -> UserResponse:
-    return UserResponse.model_validate(user)
